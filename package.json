@@ -1,0 +1,60 @@
+{
+  "name": "electronpdf1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "webpack serve --config ./config/webpack.dev.config.js",
+    "build": "webpack --config ./config/webpack.prod.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron electron/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "babelMacros": {
+    "fontawesome-svg-core": {
+      "license": "free"
+    }
+  },
+  "dependencies": {
+    "@babel/helper-module-imports": "^7.22.5",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-brands-svg-icons": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@grpc/grpc-js": "^1.9.2",
+    "@grpc/proto-loader": "^0.7.9",
+    "babel-plugin-macros": "^3.1.0",
+    "bootstrap": "^4.6.0",
+    "electron": "^25.4.0",
+    "electron-store": "^8.1.0",
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "path-browserify": "^1.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.9.179",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.8.0",
+    "react-dom": "^18.2.0",
+    "react-dropdown-input": "^0.1.11",
+    "react-select": "^5.7.4",
+    "sqlite3": "^5",
+    "util": "^0.12.5",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.9.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "@babel/preset-react": "^7.22.5",
+    "babel-loader": "^9.1.3",
+    "css-loader": "^6.8.1",
+    "html-webpack-plugin": "^5.5.3",
+    "mini-css-extract-plugin": "^2.7.6",
+    "react-router-dom": "^6.14.2",
+    "style-loader": "^3.3.3"
+  }
+}
