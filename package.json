@@ -1,13 +1,18 @@
 {
-  "name": "electronpdf1",
+  "name": "electronvocabscan",
   "version": "1.0.0",
   "description": "",
   "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
     "start": "webpack serve --config ./config/webpack.dev.config.js",
     "build": "webpack --config ./config/webpack.prod.config.js",
+    "builde": "webpack --config ./config/webpack.main.config.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron electron/main.js"
+    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron electron/main.js",
+    "start-electron1": "electron electron/main.js",
+    "start-electron2": "electron .",
+    "start-electron3": "electron appdist/main.15c46b265731dc342c69.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +33,7 @@
     "@grpc/proto-loader": "^0.7.9",
     "babel-plugin-macros": "^3.1.0",
     "bootstrap": "^4.6.0",
+    "copy-webpack-plugin": "^11.0.0",
     "electron": "^25.4.0",
     "electron-store": "^8.1.0",
     "node-polyfill-webpack-plugin": "^2.0.1",
@@ -44,7 +50,8 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "webpack-merge": "^5.9.0"
+    "webpack-merge": "^5.9.0",
+    "webpack-proto-loader": "^0.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",

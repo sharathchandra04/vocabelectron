@@ -1,6 +1,7 @@
 //webpack.config.js
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
@@ -9,7 +10,7 @@ module.exports = {
   },
   target: 'electron-renderer',
   output: {
-    path: path.resolve(__dirname, "../dist"),
+    path: path.resolve(__dirname, "../appdist"),
     filename: "[name].[hash].js",
     chunkFilename: "[name].[chunkhash].js",
     assetModuleFilename: "assets/images/[hash][ext][query]"

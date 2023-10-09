@@ -1,22 +1,56 @@
+const pdfjsLib = require("pdfjs-dist");
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require("fs")
+const { spawn } = require('child_process');
 const Store = require('electron-store');
+const os = require('os');
 const store = new Store();
 
 const dbops = require('../database/dboperations')
 const mc = require('./protoclients/messageclient')
 let win = null;
+
+const startChildProcess = () => {
+    clipath = path.resolve(__dirname, '../grpcexec/pydist/cli/cli')
+    let command = `./grpcexec/pydist/cli/cli`
+    command = 'python3 ./helloworld.py'
+    let args = [path.join(__dirname, 'helloworld.py')];
+    args = []
+    const child = spawn('./electron/grpcexec/pydist/cli/cli', [], { stdio: ['pipe', 'pipe', 'pipe'] } );
+    
+    
+    child.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+    
+    child.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    
+    child.on('error', (error) => {
+        console.log(error)
+        console.error(`Error: ${error}`);
+    });
+    
+    child.on('close', (code) => {
+        console.log(`Child process exited with code ${code}`);
+    });
+}
+
 const createWindow = () => {
-    const startUrl = process.env.ELECTRON_START_URL || url.format({
-        pathname: path.resolve(__dirname, '../index.html'),
+    let startUrl = process.env.ELECTRON_START_URL || url.format({
+        pathname: path.resolve(__dirname, '../appdist/index.html'),
         protocol: 'file:',
         slashes: true,
     });
+    // startUrl = url.format({
+    //     pathname: path.resolve(__dirname, '../appdist/index.html'),
+    //     protocol: 'file:',
+    //     slashes: true,
+    // });
     const {width, height} = screen.getPrimaryDisplay().workAreaSize
-    console.log('__dirname ---> ', __dirname);
-
     win = new BrowserWindow({
         resizable:false,
         maximizable:false,
@@ -30,6 +64,7 @@ const createWindow = () => {
     });
     win.setIcon(path.join(__dirname, '../assets/images/matrixtwo.jpg'));
     win.loadURL(startUrl);
+    startChildProcess();
     app.on('window-all-closed', () => {
         if (process.platform !== 'darwin') {
             app.quit()
@@ -52,12 +87,12 @@ const readFile = (fileURL) => {
    const buff =  fs.readFileSync(pathToFile)
    return buff;
 }
-const pdfjsLib = require("pdfjs-dist");
+const getLocation = (l) => {
+    return `${os.homedir()}/Downloads${l}`
+}
 const GetTextFromPDF = async (path, page) => {
-    console.log(path, page);
     let doc = await pdfjsLib.getDocument(path).promise;
     let page1 = await doc.getPage(page);
-    console.log(typeof page1)
     let content = await page1.getTextContent();
     let strings = content.items.map(function(item) {
         return item.str;
@@ -74,35 +109,20 @@ const GetTextFromPDF = async (path, page) => {
 }
 ipcMain.on('app-ipc', (event, arg) => {
     const { location } = arg;
-    const buff = readFile(location)
+    const bookLocation = getLocation(location)
+    const buff = readFile(bookLocation)
     mc.unaryclient.GetServerResponse({message: 'hello sharath'}, (error, news) => {
       if (!error) {
         console.log('err --> ', error)
       }
-        console.log(news);
     });
-    console.log('location -----> ', location);
     store.set('lastlocation', location);
     win.webContents.send('pdf-blob', {'buffer': buff});
 });
 ipcMain.on('last-location', (event, arg) => {
     const ll = store.get('lastlocation');
-    console.log('ll inside main --> ', ll);
-    win.webContents.send('last-location-after', {lloptions: ll, randonm: Math.random() * (100 - 1) + 1});
+    win.webContents.send('last-location-after', {lloptions: ll});
 });
-
-const filterWords = (words) => {
-    const filteredWords = {};
-    words.forEach((word)=>{
-        word = word.replace(/[^a-zA-Z0-9]/g,'');
-        word = word.toLowerCase();
-        word = word.replace(/ /g,"");
-        if(word.length){
-            filteredWords[word] = true;
-        }
-    })
-    return Object.keys(filteredWords);
-}
 const addcommonwords = (commonwords) => {
     dbops.addcommonwords(commonwords)
     .then((_data) => {
@@ -120,36 +140,23 @@ ipcMain.on('add-common', (event, arg) => {
 ipcMain.on('app-scan', (event, arg) => {
 
     const { location, page } = arg;
-    GetTextFromPDF(location, page)
-    .then( (words) => {
-        let filteredWords = filterWords(words);
-        // filteredWords = ['the', 'atone'];
-        mc.unaryclient.GetWordFrequencies({words: filteredWords}, (error, data) => {
-            if (!error) {
+    const bookLocation = getLocation(location)
+    console.log(location, page)
+    mc.unaryclient.Scan({book:bookLocation, start:`${page}`, end:`${page}`}, (error, data) => {
+        if (!error) {
               console.log('err --> ', error)
+        }
+        const freqdata = []
+        const meaningMap = {}
+        data.pairs&&data.pairs.forEach((pair) => {
+            if(meaningMap[pair.word]){
+                meaningMap[pair.word].push(pair.meaning)
+            } else{
+                meaningMap[pair.word] = []
+                meaningMap[pair.word].push(pair.meaning)
             }
-            console.log('frequencies -> ', data)
-            const freqdata = []
-            data.frequencies.forEach((fre, index) => {
-                console.log(fre, filteredWords[index])
-                const freqMap = {
-                    "word": filteredWords[index], 
-                    "freq": Math.round(fre * 10) / 10
-                };
-                freqdata.push(freqMap);
-            })
-
-            freqdata.sort(function(a, b){return a.freq - b.freq});
-            win.webContents.send('app-scan', {'words': freqdata});
-        });
-        // dbops.getCommon(filteredWords)
-        // .then((data) => {
-        //     const B = filteredWords.filter(n => !data.includes(n))
-
-
-        // })
-        // .catch((err)=>{
-        //     console.log(err)
-        // })
+        })
+        freqdata.sort(function(a, b){return a.freq - b.freq});
+        win.webContents.send('app-scan', {'meaningMap': meaningMap});
     });
 });

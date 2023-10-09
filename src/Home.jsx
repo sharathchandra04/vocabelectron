@@ -29,7 +29,7 @@ function Home() {
         }}
       >
         <Row style={{ height: '960px'}}>
-          <Col sm={9} style={{ height: '100%'}}>
+          <Col sm={8} style={{ height: '100%'}}>
             {
               pdf != null ? <iframe
               src={pdf}
@@ -41,7 +41,7 @@ function Home() {
             </iframe>: null
             }
           </Col>
-          <Col sm={3}>
+          <Col sm={4}>
             {/* <button onClick={sendData}>Get data</button>
             <button onClick={extractPdfPage}>extractPdfPage</button> */}
             <Scan isBuffer={ pdf != null ? true : false }/>

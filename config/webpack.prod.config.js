@@ -11,6 +11,10 @@ const devConfig = merge(commonConfig, {
       {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, "css-loader"]
+      },
+      {
+        test: /\.proto$/,
+        loader: 'protobuf-loader',
       }
     ]
   },

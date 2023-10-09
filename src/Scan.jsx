@@ -12,7 +12,7 @@ import { faMinusSquare, faPlusSquare, faFilter, faStar, faCircleCheck, faTrash, 
 
 function Scan(props) {
   const [pdf, setPdf] = useState(null);
-  const [location, setLocation] = useState('/home/sharath/Downloads/books/one-hundred-years-of-solitude.pdf');
+  const [location, setLocation] = useState('');
   const [page, setPage] = useState(0);
   const [pagewords, setpagewords] = useState([]);
   const [loptions, setLoptions] = useState([]);
@@ -28,7 +28,9 @@ function Scan(props) {
   };
 
   const scanData = () => {
-    ipcRenderer.send('app-scan', { location, page });
+    if ( page >0 ) {
+      ipcRenderer.send('app-scan', { location, page });
+    }
   };
   const setWordType = (index, type) => {
     const _pagewords = [...pagewords];
@@ -53,24 +55,16 @@ function Scan(props) {
     window.alert('added words to common');
   }
   const appScan = (evt, data) => {
-    console.log('inside app scan listener ', Math.floor(Math.random() * (100 - 1 + 1) + 1));
-    let { words } = data;
-    console.log(words)
-
-    // words = words.map((word) => {
-    //   return {
-    //     word,
-    //     type: null
-    //   }
-    // })
-    setpagewords(words);
+    let { meaningMap } = data;
+    console.log(meaningMap)
+    setpagewords(meaningMap);
   }
   const lastLocationAfter = (event, ldata) => {
     console.log('insisdde lastLocationAfter ', ldata)
     let { lloptions } = ldata;
-    console.log('ll -------> ', lloptions);
     const data = [{ value: lloptions, label: lloptions}];
     setLoptions(data);
+    setLocation(data[0].value)
   }
   useEffect(() => {
     ipcRenderer.on('app-scan', appScan);
@@ -104,18 +98,19 @@ function Scan(props) {
                     onChange={(e)=>{setLocation(e.target.value)}}
                   />
                 </Row>
-                <Row className="pl-3" style={{ border: 'solid 1px red' }}>
+                {/*<Row className="pl-3" style={{ border: 'solid 1px red' }}>
                   <Col sm={12} style={{ border: 'solid 1px red' }}>
                     <Select
+                      value={} 
                       options={loptions}
-                      noOptionsMessage={(i)=>{console.log(i); return null}}
+                      noOptionsMessage={(i)=>{return null}}
                       onInputChange={(d)=>{
                         console.log('i -> ', d)
                       }}
                     />
                   </Col>
-                </Row>
-                <Row className="pl-3">
+                </Row>*/}
+                {/*<Row className="pl-3">
                   <div style={{width: '100%'}}>
                     <Select
                       options={loptions}
@@ -127,8 +122,7 @@ function Scan(props) {
                       placeholder=""
                       />
                   </div>
-                </Row>
-
+                <*/}/Row>
                 <Row className="pl-3 pt-2">
                   <Button variant="outline-light" className="rounded-0" onClick={sendData}>Get data</Button>
                 </Row>
@@ -160,21 +154,21 @@ function Scan(props) {
                     </Col>
                     <Col sm={3}>
                       {
-                        (pagewords.length) ? (
-                          <Button variant="outline-light" className="rounded-0" onClick={magicData}>
-                            <FontAwesomeIcon icon={faWandMagicSparkles} style={{ color: 'lightblue' }}/>
-                          </Button>
-                        ):null
+                        // (pagewords.length) ? (
+                        //   <Button variant="outline-light" className="rounded-0" onClick={magicData}>
+                        //     <FontAwesomeIcon icon={faWandMagicSparkles} style={{ color: 'lightblue' }}/>
+                        //   </Button>
+                        // ):null
                       }
                     </Col>
                   </Row>
                   ):null
                 }
                 {
-                  (pagewords.length) ? (
+                  (Object.keys(pagewords).length) ? (
                     <div 
                       className="pl-0 pt-2 mt-3" 
-                      style={{
+                      style={{ 
                         maxHeight: '750px',
                         overflowY: 'auto',
                       }}
@@ -182,70 +176,32 @@ function Scan(props) {
                       <div className="pb-2 pt-1" style={{ color: 'Green', borderBottom: 'solid 1px green '}}>
                         <b>Vocab</b>
                       </div>
-                      <div style={{display:'flex'}}>
-                        <div style={{width:"50%", border: 'solid 1px green'}}>
+                      <div>
+                        <div>
                           {
-                            pagewords.map((word, index) => {
-                              return word.freq < 3 && word.freq > 0 ? <div style={{ color: 'white', height: '30px'}}>
-                                <span>
-                                {
-                                  <span>{word.word} { '  '} {word.freq}</span>
-                                }
-                                </span>
+                            Object.keys(pagewords).map((word) => {
+                              return <div className="pl-2 pt-1" style={{ color: 'white', borderBottom: 'solid 1px blue'}}>
+                                  <div><b><u><h5>{word}</h5></u></b></div>
+                                  <br/>
+                                  <div classname="pl-3">
+                                    <ul>
+                                      {
+                                        pagewords[word].map((meaning) => {
+                                          return <li>
+                                            {
+                                              meaning
+                                            }
+                                          </li>
+                                        })
+                                      }
+                                    </ul>
+                                  </div>
                               </div>
-                              :
-                              null
                             })
                           }
                         </div>
-                        <div style={{width:"50%",  border: 'solid 1px green'}}>
-                          {
-                            vocabSelecteed.map((word, index) => {
-                              return <div style={{ color: 'white', height: '30px'}}>
-                                <span>
-                                {
-                                  <span>{word.word} { '  '} {word.freq}</span>
-                                }
-                                </span>
-                              </div>
-                              :
-                              null
-                            })
-                          }
-                        </div>
+                        
                       </div>
-                      <div className="pb-2  pt-1" style={{ color: 'red', borderBottom: 'solid 1px red '}}>
-                        <b>Outliers</b>
-                      </div>
-                      {
-                        pagewords.map((word, index) => {
-                          return word.freq == 0 ? <div style={{ color: 'white', height: '30px'}}>
-                            <span>
-                            {
-                              <span>{word.word} { '  '} {word.freq}</span>
-                            }
-                            </span>
-                          </div>
-                          :
-                          null 
-                        })
-                      }
-                      <div className="pb-2  pt-1" style={{ color: 'blue', borderBottom: 'solid 1px blue '}}>
-                        <b>Common</b>
-                      </div>
-                      {
-                        pagewords.map((word, index) => {
-                          return word.freq > 3 ? <div style={{ color: 'white', height: '30px'}}>
-                            <span>
-                            {
-                              <span>{word.word} { '  '} {word.freq}</span>
-                            }
-                            </span>
-                          </div>
-                          :
-                          null 
-                        })
-                      }
                     </div>
                   ):null
                 }
